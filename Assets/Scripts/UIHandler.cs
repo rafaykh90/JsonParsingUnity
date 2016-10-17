@@ -14,10 +14,14 @@ public class UIHandler : MonoBehaviour {
 	int currentOffset = 0;
 	int currentLimit = 10;
 	string JsonString;
+	private String Url;
+	private String program;
 
 	// Use this for initialization
 	void Start(){
 	}
+
+	//Adding Titles to the Scrollable List
 	public void AddItems() {
 		for (int i = 0; i < 10; i++) {
 			if (i == 0 && ContentBox.transform.childCount <= 1){
@@ -34,8 +38,7 @@ public class UIHandler : MonoBehaviour {
 		ContentBox.GetComponent<RectTransform> ().sizeDelta = new Vector2 (0, ContentBox.GetComponent<RectTransform>().rect.height + 495);
 	}
 
-	private String Url;
-	private String program;
+	//OnClick Event for Search Button - Called from the scene
 	public void SearchBtnPressed(){
 		foreach (Transform child in ContentBox.transform) {
 			if (child.tag != "firstPos") {
@@ -47,6 +50,8 @@ public class UIHandler : MonoBehaviour {
 		program = programInput.text.ToString ();
 		Search ();
 	}
+
+	//This method creates a URL string and calls the coroutine to get JSON data from the api server.
 	public void Search(){
 		Url = "http://external.api.yle.fi/v1/programs/items.json?type=" + program + "&offset=" + currentOffset.ToString() + "&limit=" +
 			currentLimit +"&app_id=2621b415&app_key=4c4114300a84dd6a177d498085429dc2";
@@ -54,18 +59,22 @@ public class UIHandler : MonoBehaviour {
 		StartCoroutine (GetText ());
 	}
 
+
+	//This Coroutine gets the JSON text from the server and 
 	IEnumerator GetText () {
 		UnityWebRequest www = UnityWebRequest.Get (Url);
 		yield return www.Send ();
 		try {
 			if (www.isError) {
-				print (www.error);
+				ErrorMessage.text = www.error;
+				ErrorMessage.gameObject.SetActive(true);
+				StartCoroutine (DisableErrorText());
 			} else {
 				//Json fetched
 				JsonString = www.downloadHandler.text.ToString ();
 				JsonData itemData = JsonMapper.ToObject (JsonString);
 				dataArray.Clear ();
-				dataArray = JsonFetcher.GetData (itemData);
+				dataArray = JsonParser.GetData (itemData);
 				AddItems ();
 				currentOffset += currentLimit;
 			}
@@ -77,12 +86,16 @@ public class UIHandler : MonoBehaviour {
 		}
 	}
 
+
+	//Checks if the vertical scrollbar is at the bottom then it will call the Search method to get the Next 10 items.
 	public void ScrollerValueChanged(Scrollbar ScrollVert){
 		if (ScrollVert.value == 0) {
 			Search ();
 		}
 	}
 
+
+	//If an error occurs in the Search or if the data is not find in the directory, an error message will be displayed in the the scene. This coroutine is used to disable the error text after 3 seconds.
 	IEnumerator DisableErrorText(){
 		yield return new WaitForSeconds (3);
 		ErrorMessage.gameObject.SetActive (false);
