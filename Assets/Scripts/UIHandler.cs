@@ -11,13 +11,13 @@ using UnityEngine.Networking;
 /// </summary>
 public class UIHandler : MonoBehaviour {
 	
-	public Text programInput, ErrorMessage;
+	public Text UserInputField, ErrorMessage;
 	public GameObject ContentBox, TextContainer, firstPos;
 	List<String> dataArray = new List<string>();
 	int currentOffset = 0;
 	int currentLimit = 10;
 	string JsonString;
-	private String program;
+	private String UserInput;
 
 	/// <summary>
 	/// OnClick Event for Search Button - Called from the scene
@@ -31,7 +31,7 @@ public class UIHandler : MonoBehaviour {
 		}
 		ContentBox.GetComponent<RectTransform> ().sizeDelta = new Vector2 (0, 0);
 		currentOffset = 0;
-		program = programInput.text.ToString ();
+		UserInput = UserInputField.text.ToString ();
 		Search ();
 	}
 
@@ -40,7 +40,7 @@ public class UIHandler : MonoBehaviour {
 	/// coroutine to get JSON data from the api server.
 	/// </summary>
 	public void Search(){
-		string Url = "http://external.api.yle.fi/v1/programs/items.json?type=" + program + "&offset=" + currentOffset.ToString() + "&limit=" +
+			string Url = "http://external.api.yle.fi/v1/programs/items.json?q=" + UserInput + "&type=program&offset=" + currentOffset.ToString() + "&limit=" +
 			currentLimit +"&app_id=2621b415&app_key=4c4114300a84dd6a177d498085429dc2";
 		print (Url);
 		StartCoroutine (GetText (Url));
